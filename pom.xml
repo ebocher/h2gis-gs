@@ -6,27 +6,30 @@
 
     <groupId>org.orbisgis</groupId>
     <artifactId>h2gis-gs</artifactId>
-    <version>1.18.0</version>
+    <version>1.19-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <h2gis-gt-version>27-SNAPSHOT</h2gis-gt-version>
+        <groovy-version>3.0.9</groovy-version>
+        <geoscript-version>1.19-SNAPSHOT</geoscript-version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.orbisgis</groupId>
             <artifactId>gt-h2gis</artifactId>
-            <version>26.2</version>
+            <version>${h2gis-gt-version}</version>
         </dependency>
         <dependency>
             <groupId>org.geoscript</groupId>
             <artifactId>geoscript-groovy</artifactId>
-            <version>1.18.0</version>
+            <version>${geoscript-version}</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>3.0.9</version>
+            <version>${groovy-version}</version>
         </dependency>
     </dependencies>
     <repositories>
