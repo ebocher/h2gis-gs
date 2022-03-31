@@ -1,9 +1,18 @@
 package geoscript.workspace
 
+import groovy.sql.Sql
 import org.geotools.data.DataStore
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.jdbc.JDBCDataStoreFactory
+import org.h2gis.functions.io.utility.IOMethods
 import org.h2gis.geotools.H2GISDataStoreFactory
+import org.h2gis.utilities.URIUtilities
+import org.h2gis.utilities.dbtypes.DBTypes
+import org.orbisgis.commons.annotations.NotNull
+
+import java.sql.Connection
+import java.sql.SQLException
+import java.util.regex.Pattern
 
 /**
  * A H2GIS Workspace connects to a H2GIS database.
@@ -129,6 +138,83 @@ class H2GIS extends Database {
         params.put("passwd", password)
         def h2gisf = new H2GISDataStoreFactory()
         h2gisf.createDataStore(params)
+    }
+
+    /**
+     * Create a dynamic link from a file to a H2GIS database.
+     *
+     * @param path The path of the file.
+     * @param table The name of the table created to store the file.
+     * @param delete True to delete the table if exists. Default to true.
+     * @throws java.sql.SQLException Exception throw on database error.
+     */
+    String linkedFile(String path, String table, boolean delete = false) throws SQLException {
+        return IOMethods.linkedFile(getSQLConnection(this.getSql()), path, table, delete)
+    }
+
+    /**
+     * Create a dynamic link from a file to a H2GIS database.
+     *
+     * @param path The path of the file.
+     * @param table The name of the table created to store the file.
+     * @param delete True to delete the table if exists. Default to true.
+     * @throws java.sql.SQLException Exception throw on database error.
+     */
+    String linkedFile(String path, boolean delete = false) throws SQLException {
+        return IOMethods.linkedFile(getSQLConnection(this.getSql()), path, getTableNameFromPath(path), delete)
+    }
+
+    /**
+     * Create a dynamic link from a file to a H2GIS database.
+     *
+     * @param uri An uri for the file.
+     * @param table The name of the table created to store the file.
+     * @param delete True to delete the table if exists. Default to true.
+     * @throws java.sql.SQLException Exception throw on database error.
+     */
+    String linkedFile(URI uri, String table, boolean delete = false) throws SQLException {
+        return IOMethods.linkedFile(getSQLConnection(this.getSql()), new File(uri).getAbsolutePath(), table, delete)
+    }
+
+    /**
+     * Create a dynamic link from a file to a H2GIS database.
+     *
+     * @param uri An uri for the file.
+     * @param table The name of the table created to store the file.
+     * @param delete True to delete the table if exists. Default to true.
+     * @throws java.sql.SQLException Exception throw on database error.
+     */
+    String linkedFile(URI uri, boolean delete = false) throws SQLException {
+        def path = new File(uri).getAbsolutePath()
+        return IOMethods.linkedFile(getSQLConnection(this.getSql()), path, getTableNameFromPath(path), delete)
+    }
+
+    private String getTableNameFromPath(String filePath) {
+        String name = URIUtilities.fileFromString(filePath).getName();
+        if(name.contains(".")) {
+            name = name.substring(0, name.lastIndexOf("."));
+        }
+        if(databaseType == DBTypes.H2GIS){
+            return name.toUpperCase();
+        }
+        return name.toLowerCase();
+    }
+
+
+    /**
+     * Return the connection of the SQL object
+     * @param sql Groovy Sql object
+     * @return the connection
+     */
+    static Connection getSQLConnection(Sql sql){
+        def conn = sql.getConnection()
+        if(conn==null){
+            def ds = sql.dataSource
+            if(ds){
+                conn = ds.connection
+            }
+        }
+        return conn
     }
 
     /**

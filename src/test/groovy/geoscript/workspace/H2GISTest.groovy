@@ -1,12 +1,16 @@
 package geoscript.workspace
 
-import geoscript.feature.Field
-import geoscript.geom.Point
-import geoscript.layer.Layer
+import geoscript.feature.*
+import geoscript.geom.*
+import geoscript.layer.*
+import geoscript.render.*
+import geoscript.style.Gradient
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertNotNull
+import static org.junit.jupiter.api.Assertions.assertTrue
 
 class H2GISTest {
 
@@ -21,5 +25,37 @@ class H2GISTest {
         l.add([new Point(3,3), "three"])
         assertEquals 3, l.count()
         h2gis.close()
+    }
+
+    @Test void addFeatures() {
+        H2GIS h2gis = new H2GIS("./target/mydb")
+        h2gis.getSql().execute("drop table if exists \"PARCELS\" ")
+        Shapefile countries = new Shapefile(new File(H2GISTest.class.getResource("landcover2000.shp").toURI()))
+        h2gis.add(countries, "PARCELS")
+        def h2GISTable = h2gis.get("PARCELS");
+        assertEquals(countries.count, h2GISTable.count)
+    }
+
+    @Test void linkedFile() {
+        H2GIS h2gis = new H2GIS("./target/mydb")
+        h2gis.getSql().execute("drop table if exists \"PARCELS\" ")
+        Shapefile countries = new Shapefile(new File(H2GISTest.class.getResource("landcover2000.shp").toURI()))
+        h2gis.linkedFile(H2GISTest.class.getResource("landcover2000.shp").toURI(), "PARCELS", true)
+        def h2GISTable = h2gis.get("PARCELS");
+        assertEquals(countries.count, h2GISTable.count)
+    }
+
+    @Disabled
+    @Test
+    void readShapeFile(){
+        Shapefile countries = new Shapefile(new File(H2GISTest.class.getResource("landcover2000.shp").toURI()))
+        println "# Features in Countries = ${countries.count}"
+        Gradient gradient = new Gradient(countries, "runoff_win", "Quantile", 3, "Greens")
+        countries.style = gradient
+        Map map = new Map()
+        map.addLayer(countries)
+        File imgFile = new File("/tmp/mymap.png")
+        map.render(imgFile)
+
     }
 }
